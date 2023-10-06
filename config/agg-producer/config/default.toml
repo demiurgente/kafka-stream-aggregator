@@ -12,5 +12,5 @@ options = { period = 5 }
 [kafka]
 broker = "kafka1:19092"
 registry = "http://kafka-schema-registry:8081"
-producer = { auto_offset_reset = 'earliest', topic_name = 'ewma_5min' }
-consumer = { group_id = 'trades_options', topic_name = 'trades_option_btc' }
+producer = { auto_offset_reset = 'earliest', topic_name = 'trades-option-btc-ewma-5min' }
+consumer = { auto_offset_reset = 'latest', group_id = 'trades_options', topic_name = 'trades-option-btc' }

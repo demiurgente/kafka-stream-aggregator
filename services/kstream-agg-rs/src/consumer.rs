@@ -31,13 +31,16 @@ impl KafkaConsumer {
         schema_registry_url: String,
         group_id: String,
         topic: String,
+        auto_offset_reset: Option<String>,
     ) -> Self {
+        let offset_reset = auto_offset_reset.unwrap_or("earliest".to_string());
+
         let consumer: StreamConsumer = ClientConfig::new()
             .set("group.id", group_id)
             .set("bootstrap.servers", bootstrap_servers)
             .set("session.timeout.ms", "6000")
             .set("enable.auto.commit", "false")
-            .set("auto.offset.reset", "earliest")
+            .set("auto.offset.reset", offset_reset)
             .set_log_level(RDKafkaLogLevel::Debug)
             .create()
             .expect("Consumer creation error");

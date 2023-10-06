@@ -5,7 +5,7 @@ use tracing::info;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Options {
-    pub period: u64,
+    pub period: i64,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -26,6 +26,7 @@ pub struct Trades {
 pub struct KafkaConsumer {
     pub group_id: String,
     pub topic_name: String,
+    pub auto_offset_reset: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

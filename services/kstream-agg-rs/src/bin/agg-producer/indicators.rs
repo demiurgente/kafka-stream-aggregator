@@ -1,36 +1,26 @@
 use std::fmt;
 
-use serde_derive::Serialize;
+use apache_avro::AvroSchema;
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, AvroSchema)]
 pub struct EWMA {
-    #[serde(skip)]
-    period: u64,
-    #[serde(skip)]
-    k: f64,
-    #[serde(rename(deserialize = "price"))]
+    pub period: i64,
+    pub alpha: f64,
     pub current: f64,
-    #[serde(skip)]
-    is_new: bool,
 }
 
 impl EWMA {
-    pub fn new(period: u64) -> Self {
+    pub fn new(period: i64) -> Self {
         Self {
             period,
-            k: 2.0 / (period + 1) as f64,
+            alpha: 2.0 / (period + 1) as f64,
             current: 0.0,
-            is_new: true,
         }
     }
-
-    pub fn next(&mut self, input: &f64) -> f64 {
-        if self.is_new {
-            self.is_new = false;
-            self.current = *input;
-        } else {
-            self.current = self.k * *input + (1.0 - self.k) * self.current;
-        }
+    #[inline(always)]
+    pub fn next(&mut self, x: &f64) -> f64 {
+        self.current = self.alpha * (*x) + (1.0 - self.alpha) * self.current;
         self.current
     }
 }
@@ -43,6 +33,10 @@ impl Default for EWMA {
 
 impl fmt::Display for EWMA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "EMA({})", self.period)
+        write!(
+            f,
+            "EMA(current={}, alpha={}. n={})",
+            self.period, self.alpha, self.period
+        )
     }
 }
