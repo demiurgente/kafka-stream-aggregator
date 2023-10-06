@@ -1,0 +1,327 @@
+version: "3.9"
+name: kafka-data-aggregator
+
+networks:
+  kafka:
+    #driver: host
+    driver: bridge
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+  pgadmin:
+
+services:
+  raw-producer:
+    container_name: raw-producer
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_healthy
+    networks:
+      - kafka
+    restart: always
+
+  agg-producer:
+    container_name: agg-producer
+    depends_on:
+      - raw-producer
+    networks:
+      - kafka
+    restart: always
+
+#----------------------------------------------------------------------------------------
+## JDBC Sink to Postgres for raw event data from event-producer (Kafka producer)
+#----------------------------------------------------------------------------------------
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.3.2
+    hostname: kafka-connect
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+    restart: always
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka1:19092"
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 20000
+      CONNECT_KEY_CONVERTER: 'org.apache.kafka.connect.storage.StringConverter'
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://kafka-schema-registry:8081'
+      CONNECT_VALUE_CONVERTER: 'io.confluent.connect.avro.AvroConverter'
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://kafka-schema-registry:8081'
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
+      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=ERROR,org.reflections=ERROR,org.apache.zookeeper=ERROR"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_ZOOKEEPER_CONNECT: 'zoo1:2181'
+      CONNECT_PLUGIN_PATH: '/usr/share/java,/usr/share/confluent-hub-components'
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_healthy
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing connector plugins"
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:latest
+        confluent-hub install --no-prompt confluentinc/kafka-connect-avro-converter:latest
+        #
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run &
+        #
+        echo "Waiting for Kafka Connect to start listening on localhost:8083 ⏳"
+        while : ; do
+            curl_status=$$(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors)
+            echo -e $$(date) " Kafka Connect listener HTTP state: " $$curl_status " (waiting for 200)"
+            if [ $$curl_status -eq 200 ] ; then
+            break
+            fi
+            sleep 5
+        done
+        #
+        echo -e "\n--\n+> Creating Kafka Connect PostgreSQL sink"
+        #
+        curl -i -X PUT -H  "Content-Type:application/json" \
+            http://localhost:8083/connectors/raw-pg-sink/config \
+            --data-binary  "@/config/raw-pg.json"
+        #
+        /etc/confluent/docker/run&
+        #
+        sleep infinity
+    networks:
+      - kafka
+      - postgres
+    volumes:
+      - .env:/data/credentials.properties
+      - ./services/raw-consumer-jdbc-sink/:/config/
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-raw}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /data/postgres
+    volumes:
+       - ./raw-consumer-jdbc-sink/data/:/data/postgres
+    depends_on:
+      - raw-producer
+    ports:
+      - "5432:5432"
+    networks:
+      - kafka
+      - postgres
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    links:
+       - postgres
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+#----------------------------------------------------------------------------------------
+## Kafka Stack
+#----------------------------------------------------------------------------------------
+
+  zoo1:
+    image: confluentinc/cp-zookeeper:7.3.2
+    hostname: zoo1
+    container_name: zoo1
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zoo1:2888:3888
+
+  kafka1:
+    image: confluentinc/cp-kafka:7.3.2
+    hostname: kafka1
+    container_name: kafka1
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+      - "9999:9999"
+    networks:
+      - kafka
+    environment:
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_JMX_PORT: 9001
+      KAFKA_JMX_HOSTNAME: ${DOCKER_HOST_IP:-127.0.0.1}
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    depends_on:
+      - zoo1
+    restart: unless-stopped
+    healthcheck:
+        test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka1:19092", "--list"]
+        interval: 30s
+        timeout: 10s
+        retries: 10
+
+  kafka-schema-registry:
+    image: confluentinc/cp-schema-registry:7.3.2
+    hostname: kafka-schema-registry
+    container_name: kafka-schema-registry
+    ports:
+      - "8081:8081"
+    networks:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:19092
+      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    depends_on:
+      - zoo1
+      - kafka1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--output", "/dev/null", "--silent", "--head", "--fail", "http://kafka-schema-registry:8081/subjects"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  kafka-rest-proxy:
+    image: confluentinc/cp-kafka-rest:7.3.2
+    hostname: kafka-rest-proxy
+    container_name: kafka-rest-proxy
+    ports:
+      - "8082:8082"
+    networks:
+      - kafka
+    environment:
+      KAFKA_REST_ZOOKEEPER_CONNECT: zoo1:2181
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
+      KAFKA_REST_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081/
+      KAFKA_REST_HOST_NAME: kafka-rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:19092
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_healthy
+
+#----------------------------------------------------------------------------------------
+## Monitoring
+#----------------------------------------------------------------------------------------
+
+  kafka-console:
+    container_name: redpanda-console
+    image: docker.redpanda.com/redpandadata/console:v2.3.1
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    networks:
+      - kafka
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["kafka1:19092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://kafka-schema-registry:8081"]
+        connect:
+          enabled: true
+          clusters:
+            - name: connect
+              url: "http://kafka-connect:8083/"
+    ports:
+      - 8080:8080
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_healthy
+    restart: unless-stopped
+
+
+  akhq:
+    image: tchiotludo/akhq
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: 'kafka1:19092'
+              schema-registry:
+                url: 'http://kafka-schema-registry:8081'
+              connect:
+                - name: "raw-pg-sink"
+                  url: "http://kafka-connect:8083/"
+    networks:
+      - kafka
+    ports:
+      - 8084:8080
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_healthy
+
+  zipkin-server:
+    container_name: zipkin-server
+    image: openzipkin/zipkin
+    networks:
+      - kafka
+    ports:
+      - 9411:9411
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_healthy
+
+        #  prometheus:
+        #    image: prom/prometheus
+        #    container_name: prometheus
+        #    ports:
+        #      - "9091:9090"
+        #    command: --config.file=/etc/prometheus/prometheus.yaml
+        #    volumes:
+        #      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+        #
+        #  grafana:
+        #    image: grafana/grafana:latest
+        #    container_name: grafana
+        #    restart: always
+        #    ports:
+        #      - '3000:3000'
+        #    environment:
+        #      GF_SECURITY_ADMIN_USER: admin
+        #      GF_SECURITY_ADMIN_PASSWORD: admin

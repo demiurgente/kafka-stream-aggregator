@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+   raw-producer:
+     build:
+       context: ./services/kstream-agg-rs
+       dockerfile: ../../config/raw-producer/Dockerfile
+     volumes:
+       - ./config/raw-producer/config/:/config/
+
+   agg-producer:
+     build:
+       context: ./services/kstream-agg-rs
+       dockerfile: ../../config/agg-producer/Dockerfile
+     volumes:
+       - ./config/agg-producer/config/:/config/

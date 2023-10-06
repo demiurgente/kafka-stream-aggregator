@@ -1,0 +1,2 @@
+services/raw-consumer-jdbc-sink/data/
+services/*-rs/target/

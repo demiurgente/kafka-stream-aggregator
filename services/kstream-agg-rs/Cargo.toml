@@ -1,0 +1,49 @@
+[package]
+name = "kstream-agg-rs"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+ltodd = true
+trip = true
+
+[[bin]]
+name = "agg_producer"
+path = "src/bin/agg-producer/main.rs"
+
+[[bin]]
+name = "raw_producer"
+path = "src/bin/raw-producer/main.rs"
+
+[lib]
+name = "kstream_agg_lib"
+
+[dependencies]
+lazy_static = "1.0"
+config = "0.13.1"
+serde = "1.0.8"
+deribit = "0.3.3"
+serde_derive = "1.0.188"
+futures = "0.3.28"
+tokio = {version = "1", features = ["time", "macros", "rt", "net"]}
+fehler = "1.0.0"
+anyhow = "1.0.75"
+rdkafka = { version = "0.34", features = ["cmake-build"] }
+openssl = { version = "0.10", features = ["vendored"] }
+log = "0.4.20"
+serde_json = "1.0.107"
+bytes = "1.5.0"
+apache-avro = { version = "0.14.0" , features = ["derive"] }
+schema_registry_converter = { version = "3.1.0", features = ["avro","easy","kafka_test"] }
+tracing = "0.1.37"
+opentelemetry = { version = "0.19.0", features = ["rt-tokio", "metrics"] }
+tracing-opentelemetry = "0.19.0"
+opentelemetry-zipkin = { version = "0.17.0", features = [
+  "reqwest-client",
+], default-features = false }
+tracing-subscriber = { version = "0.3", features = [
+  "json",
+  "time",
+  "env-filter",
+]}
+itertools = "0.11.0"
