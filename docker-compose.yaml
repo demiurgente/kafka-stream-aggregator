@@ -116,7 +116,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       PGDATA: /data/postgres
     volumes:
-       - ./raw-consumer-jdbc-sink/data/:/data/postgres
+       - ./services/raw-consumer-jdbc-sink/data/:/data/postgres
     depends_on:
       - raw-producer
     ports:

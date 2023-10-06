@@ -79,13 +79,11 @@ async fn main() {
     let buffer: Vec<f64> = Vec::with_capacity(1000);
     let shared_ctx = Arc::new(Mutex::new(buffer));
 
-    let start = Instant::now() + Duration::from_millis(10000);
     // Refers to aggregate over 1 minute
     // (e.g. EWMA over 1 min events from collected buffer over 1 min)
-    let mut period_interval = tokio::time::interval_at(
-        start,
-        Duration::from_millis(INDICATOR_OPTIONS_PERIOD.clone() * 60000),
-    );
+    let period_secs = INDICATOR_OPTIONS_PERIOD.clone() * 60000;
+    let start = Instant::now() + Duration::from_millis(period_secs);
+    let mut period_interval = tokio::time::interval_at(start, Duration::from_millis(period_secs));
 
     info!(
         "Accumulate statistic: {}, with interval: {} seconds for {}",
