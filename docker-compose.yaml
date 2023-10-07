@@ -1,9 +1,8 @@
 version: "3.9"
-name: kafka-data-aggregator
+name: kstream-agg
 
 networks:
   kafka:
-    #driver: host
     driver: bridge
   postgres:
     driver: bridge
@@ -104,8 +103,8 @@ services:
       - kafka
       - postgres
     volumes:
-      - .env:/data/credentials.properties
-      - ./services/raw-consumer-jdbc-sink/:/config/
+      #      - .env:/data/credentials.properties
+      - ./config/raw-consumer-jdbc-sink/:/config/
 
   postgres:
     container_name: postgres
@@ -115,8 +114,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       PGDATA: /data/postgres
-    volumes:
-       - ./services/raw-consumer-jdbc-sink/data/:/data/postgres
     depends_on:
       - raw-producer
     ports:

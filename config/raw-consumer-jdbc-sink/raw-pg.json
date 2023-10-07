@@ -1,0 +1,18 @@
+{
+	"auto.create": "true",
+	"connection.password": "changeme",
+	"connection.url": "jdbc:postgresql://postgres:5432/raw",
+	"connection.user": "postgres",
+	"connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+	"key.converter.schemas.enable": "false",
+	"value.converter.schemas.enable": "true",
+	"batch.size": 10,
+	"name": "raw-pg-sink",
+	"pk.fields": "timestamp",
+	"schema.registry.url": "http://kafka-schema-registry:8081",
+	"topics": "trades-option-btc",
+	"session.timeout.ms": 180000,
+	"request.timeout.ms": 15000,
+	"errors.retry.timeout": -1,
+	"errors.log.include.messages": "true"
+}
