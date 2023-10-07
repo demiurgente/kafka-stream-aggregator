@@ -52,16 +52,16 @@ docker-compose up
 ## Project Structure
 Due to the fact that the repo uses docker-compose, the organization is as decoupled as possible. For root directories - **config** is used to declare environment variables during the launch, while the **services** folder contains the actual implementation of Rust microservices.  
 ```
-├─ config
-│  ├── agg-producer
-│  ├── raw-consumer-jdbc-sink
-│  └─── raw-producer
+├── config
+│   ├── agg-producer
+│   ├── raw-consumer-jdbc-sink
+│   └── raw-producer
 └── services
     └── kstream-agg-rs
         └── src
-            ├─ bin
-            │  ├── agg-producer
-            │  └─── raw-producer
+            ├── bin
+            │   ├── agg-producer
+            │   └── raw-producer
             └── lib.rs
 ```
 ### Config
