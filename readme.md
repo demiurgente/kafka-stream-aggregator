@@ -1,5 +1,4 @@
-# Aggregate Kafka Streams in Rust 
-
+# Aggregate Kafka Streams in Rust
 ## Description
 This project contains a solution for the technical assignment provided by **D2X**. The text version of the assignment can be accessed in [this pdf file](./resources/D2X-DataStreamingAssignment.pdf). In brief project is supposed to set up a streaming processing application in Rust that can:
 - gather raw events as they come in from a web socket source  into the Kafka queue
@@ -78,7 +77,7 @@ More context regarding dockerfile for Rust services is addressed in the readme o
 ### Services
 It contains a single cargo library crate [kstream-agg-rs](services/kstream-agg-rs/) that is used by both `raw-producer` and `agg-producer`. This shared library allows to have nearly one-file binary declaration without code duplication from creating two separate crates.
 
-## Infrasture Considerations
+## Infrastructure Considerations
 Main declarations for infrastructure are in [docker-compose.yml](./docker-compose.yaml), some that should change more often can be found in [./docker-compose.override.yaml](./docker-compose.override.yaml).
 
 ### Kafka Connect
