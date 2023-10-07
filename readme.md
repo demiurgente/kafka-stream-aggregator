@@ -7,6 +7,7 @@ This project contains a solution for the technical assignment provided by **D2X*
 - add a sink that would stream raw events using the JDBC driver to Postgres for persistence
 
 Stack composition should end up similar to:
+
 ![](./resources/kstream-agg-rs.drawio.png)
 
 ### Problem Statement
@@ -53,16 +54,16 @@ docker-compose up
 Due to the fact that the repo uses docker-compose, the organization is as decoupled as possible. For root directories - **config** is used to declare environment variables during the launch, while the **services** folder contains the actual implementation of Rust microservices.  
 ```
 ├── config
-│   ├── agg-producer
-│   ├── raw-consumer-jdbc-sink
-│   └── raw-producer
+│    ├── agg-producer
+│    ├── raw-consumer-jdbc-sink
+│    └─── raw-producer
 └── services
     └── kstream-agg-rs
-        └── src
-            ├── bin
-            │   ├── agg-producer
-            │   └── raw-producer
-            └── lib.rs
+        └── src
+            ├── bin
+            │    ├── agg-producer
+            │    └─── raw-producer
+            └─── lib.rs
 ```
 ### Config
 Configuration folder stores setup tools to run three services:
