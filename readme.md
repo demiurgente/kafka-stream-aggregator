@@ -63,7 +63,7 @@ Due to the fact that the repo uses docker-compose, the organization is as decoup
             ├─ bin
             │  ├── agg-producer
             │  └─── raw-producer
-            └─ lib.rs
+            └── lib.rs
 ```
 ### Config
 Configuration folder stores setup tools to run three services:
