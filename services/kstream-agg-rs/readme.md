@@ -28,7 +28,7 @@ The main difficulty for aggregation comes from the fact that we have to make a c
 
 
 ## Docker Build Considerations
-Builds for both services are nearly identical, the only difference is that `raw_producer` requires usage of ca-certificates to make public HTTP requests to establish a subscription, so we have to choose over *scratch* this image:
+[Builds](../../config/raw-producer/Dockerfile) for both services are nearly identical, the only difference is that `raw_producer` requires usage of ca-certificates to make public HTTP requests to establish a subscription, so we have to choose this image over *scratch*:
 ```
 FROM gcr.io/distroless/static-debian12
 ```
@@ -41,7 +41,7 @@ cargo install --target $TARGET --path . --bin raw_producer
 before copying source files to the directory, it will build only libraries that you have declared in `Cargo.toml`.
 
 ### Cache Mounts
-Lets mount directories that will be locally cached between build, this persistent storage greatly improved download time and intermediate steps during the development.
+Allows mount directories that will be locally cached between build, this persistent storage greatly improved download time and intermediate steps during the development
 ```
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/kstream-agg-rs/target \

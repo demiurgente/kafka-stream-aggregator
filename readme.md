@@ -32,9 +32,9 @@ This project is useful to quickly pick up on Kafka, and Rust development as it c
 ### ToDo
 - [] Integrate Graphana to display metric dashboards in real time
 - [] Cover code with tests, and more extensive documentation; Saves time later on
+- [] Better handling of environment variables, current setup for Rust services requires toml files
 - [] Prometheus metric exporter for KafkaConnect (JDBC sink), microservices (stats for CPU, mem)
 - [] Aggregator microservice requires additional testing to identify (buffer size, and performance on multiple consumers)
-- [] Better handling of environment variables, current setup for Rust services requires toml files
 <!-- - [] Write more efficient code in Rust, some aspects of tokio, ownership are still not fully there -->
 
 ## Installation
@@ -66,7 +66,7 @@ Due to the fact that the repo uses docker-compose, the organization is as decoup
 ```
 ### Config
 Configuration folder stores setup tools to run three services:
-* PostgreSQL Sink Kafka Consumer (*raw-consumer-jdbc-sink*)  with [event-pg.json](config/raw-consumer-jdbc-sink/event-pg.json) to setup postgres and input kafka configuration
+* PostgreSQL Sink Kafka Consumer (*raw-consumer-jdbc-sink*)  with [event-pg.json](config/raw-consumer-jdbc-sink/raw-pg.json) to setup postgres and input kafka configuration
 
 * Raw event from websocket service (*raw-producer*) uses [default.toml](config/raw-producer/config/default.toml) to setup Deribit request handle and Kafka producer options, also it declares docker [build](config/raw-producer/Dockerfile) 
 
@@ -85,13 +85,16 @@ One of the requirements for this task was to persist raw inputs to the PostgreSQ
 
 ### pgAdmin
 Popular open-source tools to monitor and manage databases can be used to see I/O, create tables, etc. Decent for debugging and helps to achieve seamless integration of Kafka Connect.
+
 ![](./resources/pgadmin_metrics.png)
 ![](./resources/pgadmin_query.png)
 
-## Redpanda Console
+### Redpanda Console
 UI to check clusters, brokers, topics and partitions. Displays monitor consumers and consumer lag, Schema Registry, and allows management of connectors and Kafka Connect clusters.
+
 ![](./resources/redpanda.png)
 
-## AKHQ
+### AKHQ
 Another tool for Kafka, similar to the redpanda console, but more minimalistic GUI. Features are pretty much the same: Schema Registry, live trail for offsets, manage connectors, topics data, and consumer groups.
+
 ![](./resources/akhq.png)
