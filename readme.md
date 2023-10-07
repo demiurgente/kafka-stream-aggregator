@@ -60,10 +60,10 @@ Due to the fact that the repo uses docker-compose, the organization is as decoup
 └── services
     └── kstream-agg-rs
         └── src
-            ├── bin
-            │    ├── agg-producer
-            │    └─── raw-producer
-            └── lib.rs
+            ├─ bin
+            │  ├── agg-producer
+            │  └─── raw-producer
+            └─ lib.rs
 ```
 ### Config
 Configuration folder stores setup tools to run three services:
