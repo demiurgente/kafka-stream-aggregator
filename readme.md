@@ -10,9 +10,9 @@ Stack composition should end up similar to:
 ![](./resources/kstream-agg-rs.drawio.png)
 
 ### Problem Statement
-Set up multiple cross-functional services that should be easily deployed using Docker and isolated from each other to manage growing complexity. Decouple functionality to facilitate integration and deployment. The end product should be a reliable stream aggregation tool that can be quickly adopted for use cases outside of a given task where latencies and development speed matter. Software code should be easy to read and follow to deliver sustainability.
-
 This project is useful to quickly pick up on Kafka, and Rust development as it can be used as a showcase for quickly launching consumers/producers in a close to production-ready environment. Good to experiment with, develop your own features, and save time to find a state-of-the-art solution. 
+
+Set up multiple cross-functional services that should be easily deployed using Docker and isolated from each other to manage growing complexity. Decouple functionality to facilitate integration and deployment. The end product should be a reliable stream aggregation tool that can be quickly adopted for use cases outside of a given task where latencies and development speed matter. Software code should be easy to read and follow to deliver sustainability.
 
 ### Core Functionality
 - Raw event transport microservice producer to Kafka   
