@@ -1,6 +1,6 @@
 # Aggregate Kafka Streams in Rust
 ## Description
-In brief project is supposed to set up a streaming processing application in Rust that can:
+In brief, the project provides a stream processing application in Rust that can:
 - gather raw events as they come in from a web socket source  into the Kafka queue
 - pull data out from raw events and compute a metric over the period (i.e. Moving Average)
 - add a sink that would stream raw events using the JDBC driver to Postgres for persistence
