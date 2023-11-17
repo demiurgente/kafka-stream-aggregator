@@ -12,7 +12,7 @@ Stack composition should end up similar to:
 ### Problem Statement
 This project is useful to quickly pick up on Kafka, and Rust development as it can be used as a showcase for launching custom consumers/producers binary applications in a close to production-ready environment. Good to experiment with, develop your own features, and save time to find a state-of-the-art solution. 
 
-Set up multiple cross-functional services that should be easily deployed using Docker and isolated from each other to manage growing complexity. Decouple functionality to facilitate integration and deployment. The end product should be a reliable stream aggregation tool that can be quickly adopted for use cases outside of a given task where latencies and development speed matter. Software code should be easy to read and follow to deliver sustainability. This project contains a solution for the technical assignment provided by **D2X**, the text version of the assignment can be accessed in [this pdf file](./resources/D2X-DataStreamingAssignment.pdf). 
+Set up multiple cross-functional services that should be easily deployed using Docker and isolated from each other to manage growing complexity. Decouple functionality to facilitate integration and deployment. The end product should be a reliable stream aggregation tool that can be quickly adopted for use cases outside of a given task where latencies and development speed matter. Software code should be easy to read and follow to deliver sustainability. This project contains a solution for the technical assignment provided by **D2X**, the detailed requirements for the assignment can be found in [this pdf file](./resources/D2X-DataStreamingAssignment.pdf). 
 
 
 ### Core Functionality
