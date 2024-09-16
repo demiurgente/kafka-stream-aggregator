@@ -30,14 +30,6 @@ Set up multiple cross-functional services that should be easily deployed using D
 - Fairly small codebase, most of the functionality decoupled into a shared Rust library
 - Tracing for read/write Kafka latencies that could be accessed in Zipkin
 
-### ToDo
-- [] Integrate Graphana to display metric dashboards in real time
-- [] Cover code with tests, and more extensive documentation; Saves time later on
-- [] Better handling of environment variables, current setup for Rust services requires toml files
-- [] Prometheus metric exporter for KafkaConnect (JDBC sink), microservices (stats for CPU, mem)
-- [] Aggregator microservice requires additional testing to identify (buffer size, and performance on multiple consumers)
-<!-- - [] Write more efficient code in Rust, some aspects of tokio, ownership are still not fully there -->
-
 ## Installation
 
 ```bash
