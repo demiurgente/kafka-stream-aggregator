@@ -1,4 +1,4 @@
-# Aggregate Kafka Streams in Rust
+# Aggregate Streaming Financial Data in Rust
 ## Description
 In brief, the project provides a stream processing application in Rust that can:
 - gather raw events as they come in from a web socket source  into the Kafka queue
